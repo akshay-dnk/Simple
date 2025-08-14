@@ -1,9 +1,33 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.Simple" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- Edge-to-Edge -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- System bar icon colors -->
+        <!-- true = dark icons (for light backgrounds) && false = light icons (for dark backgrounds) -->
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.Simple" parent="Base.Theme.Simple" />
+
+
+    <!-- Splash screen theme. -->
+    <style name="Theme.Simple.Splash" parent="Theme.SplashScreen">
+
+        <!-- Background adapts to dynamic Material You / fallback -->
+        <item name="windowSplashScreenBackground">?attr/colorSurface</item>
+
+        <!-- Icon shown on splash -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+
+        <!-- Duration for icon animation -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+
+        <!-- Theme applied after splash -->
+        <item name="postSplashScreenTheme">@style/Theme.Simple</item>
+    </style>
+
 </resources>

@@ -45,4 +45,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    //  splashscreen
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // material design
+    implementation("com.google.android.material:material:1.9.0")
 }
