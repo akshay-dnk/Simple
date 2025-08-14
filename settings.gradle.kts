@@ -21,3 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Simple"
 include(":app")
+include(":admin")
+include(":user")
+include(":core")
