@@ -1,37 +1,84 @@
 package com.ags.simple
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.delay
+import com.ags.admin.AdminDashboardActivity
+import com.ags.core.BaseActivity
+import com.ags.simple.databinding.ActivityMainBinding
+import com.ags.simple.ui.authScreen.AuthActivity
+import com.ags.simple.ui.authScreen.AuthState
+import com.ags.simple.ui.authScreen.AuthViewModel
+import com.ags.simple.ui.authScreen.RoleState
+import com.ags.user.UserDashboardActivity
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private val viewModel: AuthViewModel by viewModels()
 
     private var isReady = false
+    private var hasNavigated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        // Install the splash screen
+        // Install and configure splash
         val splashScreen = installSplashScreen()
-
-        // splash handling
         setupSplashScreen(splashScreen)
 
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        applySystemBarsPadding(binding.root)
+
+        // Observe auth state
+        lifecycleScope.launch {
+            viewModel.authState.collect { state ->
+                when (state) {
+
+                    is AuthState.FirstLaunch -> navigateToAuth()
+
+                    is AuthState.SignedIn -> {
+                        when (state.role) {
+                            RoleState.Admin -> {
+                                startActivity(Intent(this@MainActivity, AdminDashboardActivity::class.java))
+                            }
+
+                            RoleState.User -> {
+                                startActivity(Intent(this@MainActivity, UserDashboardActivity::class.java))
+                            }
+                        }
+                        finish()
+                    }
+
+                    is AuthState.SignedOut-> navigateToAuth()
+                    is AuthState.Error -> navigateToAuth()
+                    is AuthState.Idle,
+                    is AuthState.Loading -> Unit
+                }
+                // Mark ready once we get a state (other than Loading/Idle)
+                if (state is AuthState.SignedIn ||
+                    state is AuthState.SignedOut ||
+                    state is AuthState.Error ||
+                    state is AuthState.FirstLaunch
+                ) {
+                    isReady = true
+                }
+            }
         }
+
+    }
+
+    private fun navigateToAuth() {
+        if (hasNavigated) return
+        hasNavigated = true
+        startActivity(Intent(this, AuthActivity::class.java))
+        finish()
     }
 
     private fun setupSplashScreen(splashScreen: SplashScreen) {
@@ -47,12 +94,6 @@ class MainActivity : AppCompatActivity() {
                 .scaleY(0.8f)
                 .translationY(-50f)
                 .withEndAction { splashView.remove() }
-        }
-
-        // Simulate some startup work (like loading DB / API)
-        lifecycleScope.launch {
-            delay(2000) // Simulated loading
-            isReady = true
         }
     }
 }
