@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.ags.admin.AdminDashboardActivity
+import com.ags.admin.ui.dashboardScreen.AdminDashboardActivity
 import com.ags.core.BaseActivity
 import com.ags.simple.databinding.ActivityAuthBinding
 import com.ags.user.UserDashboardActivity

@@ -3,7 +3,7 @@
 
     <application>
         <activity
-            android:name=".AdminDashboardActivity"
+            android:name=".ui.dashboardScreen.AdminDashboardActivity"
             android:exported="false" />
     </application>
 

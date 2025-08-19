@@ -113,7 +113,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     val newUser = hashMapOf(
                         "name" to (currentUser.displayName ?: ""),
                         "email" to email,
-                        "role" to "user"
+                        "role" to "user",
+                        "profileUrl" to (currentUser.photoUrl?.toString() ?: "")
                     )
                     db.collection("users").document(email).set(newUser).await()
                     "user"
