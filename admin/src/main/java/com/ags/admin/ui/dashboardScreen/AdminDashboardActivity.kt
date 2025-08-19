@@ -1,11 +1,12 @@
 package com.ags.admin.ui.dashboardScreen
 
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ags.admin.databinding.ActivityAdminDashboardBinding
+import com.ags.admin.ui.userDetailScreen.UserDetailActivity
 import com.ags.core.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -24,8 +25,8 @@ class AdminDashboardActivity : BaseActivity() {
         applySystemBarsPadding(binding.root)
 
         adapter = UserAdapter(emptyList()) {
-            // Handle item click
-            Toast.makeText(this, "Clicked on ${it.email}", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, UserDetailActivity::class.java)
+            startActivity(intent)
         }
         binding.rvUsers.adapter = adapter
         binding.rvUsers.layoutManager = LinearLayoutManager(this)

@@ -3,6 +3,12 @@
 
     <application>
         <activity
+            android:name=".ui.systemAccessScreen.SystemAccessActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.userDetailScreen.UserDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.dashboardScreen.AdminDashboardActivity"
             android:exported="false" />
     </application>
