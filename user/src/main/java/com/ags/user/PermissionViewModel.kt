@@ -2,12 +2,11 @@ package com.ags.user
 
 import android.app.Application
 import android.content.pm.PackageManager
-import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.ags.core.model.ContactInfo
 import com.ags.core.model.PermissionStatus
+import com.ags.user.data.ContactsUploader
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +19,8 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
+
+    private val contactsUploader = ContactsUploader(firestore)
 
     // State exposed to UI
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
@@ -80,64 +81,13 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun uploadContacts() {
         val context = getApplication<Application>().applicationContext
-        val currentUser = firebaseAuth.currentUser ?: return
-        val email = currentUser.email ?: return
+        val email = firebaseAuth.currentUser?.email ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _uploadState.value = UploadState.Loading // 👈 show loading
-
-                val contacts = mutableListOf<ContactInfo>()
-
-                val cursor = context.contentResolver.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    arrayOf(
-                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                        ContactsContract.CommonDataKinds.Phone.NUMBER
-                    ),
-                    null, null, null
-                )
-
-                cursor?.use {
-                    val nameIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                    val numberIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-
-                    while (it.moveToNext()) {
-                        val name = it.getString(nameIdx)
-                        val phone = it.getString(numberIdx)?.replace("\\D".toRegex(), "")
-                        if (!phone.isNullOrEmpty()) {
-                            contacts.add(ContactInfo(name, phone))
-                        }
-                    }
-                }
-
-                if (contacts.isEmpty()) {
-                    _uploadState.value = UploadState.Error("No contacts found")
-                    return@launch
-                }
-
-                // Deduplicate by phone number
-                val uniqueContacts = contacts.distinctBy { it.phone }
-
-                // Upload contacts in Firestore
-                val userContactsRef = firestore.collection("users")
-                    .document(email)
-                    .collection("permissions")
-                    .document("read_contacts")
-                    .collection("contacts")
-
-                // Firestore batch limit = 500 writes
-                uniqueContacts.chunked(500).forEach { chunk ->
-                    val batch = firestore.batch()
-                    chunk.forEach { contact ->
-                        val docRef = userContactsRef.document(contact.phone!!)
-                        batch.set(docRef, contact)
-                    }
-                    batch.commit().await()
-                }
-
-                _uploadState.value = UploadState.Success("Contacts uploaded successfully ✅")
-
+                val message = contactsUploader.uploadContacts(context, email)
+                _uploadState.value = UploadState.Success(message)
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error("Failed: ${e.message}")
             }
