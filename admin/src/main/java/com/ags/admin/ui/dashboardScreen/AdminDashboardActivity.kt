@@ -24,8 +24,9 @@ class AdminDashboardActivity : BaseActivity() {
         setContentView(binding.root)
         applySystemBarsPadding(binding.root)
 
-        adapter = UserAdapter(emptyList()) {
+        adapter = UserAdapter(emptyList()) { selectedUser ->
             val intent = Intent(this, UserDetailActivity::class.java)
+            intent.putExtra("user", selectedUser)
             startActivity(intent)
         }
         binding.rvUsers.adapter = adapter
