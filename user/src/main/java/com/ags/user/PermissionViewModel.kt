@@ -11,6 +11,8 @@ import com.ags.core.model.PermissionStatus
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -18,6 +20,10 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
+
+    // State exposed to UI
+    private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
+    val uploadState: StateFlow<UploadState> get() = _uploadState
 
     fun checkAndUploadPermission(permissions: List<String>) {
         val context = getApplication<Application>().applicationContext
@@ -79,6 +85,8 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                _uploadState.value = UploadState.Loading // 👈 show loading
+
                 val contacts = mutableListOf<ContactInfo>()
 
                 val cursor = context.contentResolver.query(
@@ -103,7 +111,10 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
                     }
                 }
 
-                if (contacts.isEmpty()) return@launch
+                if (contacts.isEmpty()) {
+                    _uploadState.value = UploadState.Error("No contacts found")
+                    return@launch
+                }
 
                 // Deduplicate by phone number
                 val uniqueContacts = contacts.distinctBy { it.phone }
@@ -125,8 +136,10 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
                     batch.commit().await()
                 }
 
+                _uploadState.value = UploadState.Success("Contacts uploaded successfully ✅")
+
             } catch (e: Exception) {
-                e.printStackTrace()
+                _uploadState.value = UploadState.Error("Failed: ${e.message}")
             }
         }
     }
