@@ -3,6 +3,7 @@ package com.ags.admin.ui.systemAccessScreen
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
@@ -73,9 +74,9 @@ class SystemAccessActivity : BaseActivity() {
 
         when (feature.type) {
             SystemFeatureType.READ_CONTACTS -> openContactsActivity()
-            SystemFeatureType.LIVE_CAMERA -> {}
-            SystemFeatureType.FINE_LOCATION -> {}
-            SystemFeatureType.RECORD_AUDIO -> {}
+            SystemFeatureType.LIVE_CAMERA -> showToast("Camera feature coming soon")
+            SystemFeatureType.FINE_LOCATION -> showToast("Location feature coming soon")
+            SystemFeatureType.RECORD_AUDIO -> showToast("Audio feature coming soon")
         }
     }
 
@@ -85,5 +86,9 @@ class SystemAccessActivity : BaseActivity() {
             putExtra("user", user)
         }
         startActivity(intent)
+    }
+
+    private fun showToast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }
