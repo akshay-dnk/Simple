@@ -64,6 +64,10 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <include
+                android:id="@+id/locationUploadStatus"
+                layout="@layout/item_upload_status" />
+
         </LinearLayout>
 
     </ScrollView>

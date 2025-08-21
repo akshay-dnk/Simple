@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -35,8 +36,26 @@ class UserDashboardActivity : BaseActivity() {
                 if (granted && permission == Manifest.permission.READ_CONTACTS) {
                     permissionViewModel.uploadContacts()
                 }
+
+                if (granted && permission == Manifest.permission.ACCESS_FINE_LOCATION) {
+                    permissionViewModel.uploadLocation(this)
+                }
             }
         }
+
+    // Permission Resolution Launcher
+    val resolutionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // GPS enabled → retry upload
+            permissionViewModel.uploadLocation(this)
+        } else {
+            // GPS disabled → show error
+            permissionViewModel.onLocationUploadError()
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +66,7 @@ class UserDashboardActivity : BaseActivity() {
         observeAuthState()
 
         // Check on launch → if already granted, upload automatically
-        permissionViewModel.checkAndUploadPermission(permissions)
+        permissionViewModel.checkAndUploadPermission(permissions, this)
 
         // Request permissions if any are missing
         val notGranted = permissions.filter {
@@ -59,6 +78,9 @@ class UserDashboardActivity : BaseActivity() {
     }
 
     private fun observeAuthState() {
+
+        binding.locationUploadStatus.tvUploadTitle.text = "Upload Location"
+
         lifecycleScope.launch {
             permissionViewModel.uploadState.collect { state ->
                 when (state) {
@@ -90,6 +112,45 @@ class UserDashboardActivity : BaseActivity() {
                         Toast.makeText(this@UserDashboardActivity, state.error, Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+        }
+
+        // Location upload state
+        lifecycleScope.launch {
+            permissionViewModel.locationUploadState.collect { state ->
+                handleUploadState(state, binding.locationUploadStatus.pbUpload, binding.locationUploadStatus.ivUploadStatus)
+            }
+        }
+    }
+
+    private fun handleUploadState(
+        state: UploadState,
+        progress: View,
+        statusIcon: ImageView,
+        successMessage: Boolean = true
+    ) {
+        when (state) {
+            is UploadState.Idle -> {
+                progress.visibility = View.GONE
+                statusIcon.visibility = View.GONE
+            }
+            is UploadState.Loading -> {
+                progress.visibility = View.VISIBLE
+                statusIcon.visibility = View.GONE
+            }
+            is UploadState.Success -> {
+                progress.visibility = View.GONE
+                statusIcon.setImageResource(R.drawable.ic_success)
+                statusIcon.visibility = View.VISIBLE
+                if (successMessage) {
+                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+            is UploadState.Error -> {
+                progress.visibility = View.GONE
+                statusIcon.setImageResource(R.drawable.ic_error)
+                statusIcon.visibility = View.VISIBLE
+                Toast.makeText(this, state.error, Toast.LENGTH_SHORT).show()
             }
         }
     }
