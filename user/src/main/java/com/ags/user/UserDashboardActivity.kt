@@ -9,7 +9,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ags.core.BaseActivity
 import com.ags.user.databinding.ActivityUserDashboardBinding
 import kotlinx.coroutines.launch
@@ -77,48 +79,23 @@ class UserDashboardActivity : BaseActivity() {
         }
     }
 
-    private fun observeAuthState() {
+    private fun observeAuthState()= with(binding) {
 
-        binding.locationUploadStatus.tvUploadTitle.text = "Upload Location"
+        contactsUploadStatus.tvUploadTitle.text = getString(R.string.upload_contacts)
+        locationUploadStatus.tvUploadTitle.text = getString(R.string.upload_location)
 
         lifecycleScope.launch {
-            permissionViewModel.uploadState.collect { state ->
-                when (state) {
-                    is UploadState.Idle -> {
-                        binding.pbUploadContacts.visibility = View.GONE
-                        binding.ivUploadStatus.visibility = View.GONE
-                    }
-
-                    is UploadState.Loading -> {
-                        binding.pbUploadContacts.visibility = View.VISIBLE
-                        binding.ivUploadStatus.visibility = View.GONE
-                    }
-
-                    is UploadState.Success -> {
-                        binding.pbUploadContacts.visibility = View.GONE
-                        binding.ivUploadStatus.apply {
-                            visibility = View.VISIBLE
-                            setImageResource(R.drawable.ic_success)
-                        }
-                        Toast.makeText(this@UserDashboardActivity, state.message, Toast.LENGTH_SHORT).show()
-                    }
-
-                    is UploadState.Error -> {
-                        binding.pbUploadContacts.visibility = View.GONE
-                        binding.ivUploadStatus.apply {
-                            visibility = View.VISIBLE
-                            setImageResource(R.drawable.ic_error)
-                        }
-                        Toast.makeText(this@UserDashboardActivity, state.error, Toast.LENGTH_SHORT).show()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    permissionViewModel.uploadState.collect {
+                        handleUploadState(it, contactsUploadStatus.pbUpload, contactsUploadStatus.ivUploadStatus)
                     }
                 }
-            }
-        }
-
-        // Location upload state
-        lifecycleScope.launch {
-            permissionViewModel.locationUploadState.collect { state ->
-                handleUploadState(state, binding.locationUploadStatus.pbUpload, binding.locationUploadStatus.ivUploadStatus)
+                launch {
+                    permissionViewModel.locationUploadState.collect {
+                        handleUploadState(it, locationUploadStatus.pbUpload, locationUploadStatus.ivUploadStatus)
+                    }
+                }
             }
         }
     }

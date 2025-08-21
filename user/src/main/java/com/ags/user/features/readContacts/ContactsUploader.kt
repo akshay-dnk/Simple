@@ -1,4 +1,4 @@
-package com.ags.user.data
+package com.ags.user.features.readContacts
 
 import android.content.Context
 import android.provider.ContactsContract

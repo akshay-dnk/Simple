@@ -1,5 +1,6 @@
 package com.ags.user
 
+import android.Manifest
 import android.app.Activity
 import android.app.Application
 import android.content.pm.PackageManager
@@ -8,7 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ags.core.model.PermissionStatus
-import com.ags.user.data.ContactsUploader
+import com.ags.user.features.readContacts.ContactsUploader
 import com.ags.user.features.fineLocation.LocationUploader
 import com.ags.user.features.fineLocation.LocationUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -24,9 +25,10 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
+    private val appContext = application.applicationContext
 
     private val contactsUploader = ContactsUploader(firestore)
-    private val locationUploader = LocationUploader(firestore, application.applicationContext)
+    private val locationUploader = LocationUploader(firestore, appContext)
 
     // State exposed to UI
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
@@ -38,26 +40,20 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
     private val email = firebaseAuth.currentUser?.email
 
     fun checkAndUploadPermission(permissions: List<String>, activity: Activity) {
-        val context = getApplication<Application>().applicationContext
         permissions.forEach { permission ->
-            val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+            val granted = ContextCompat.checkSelfPermission(appContext, permission) == PackageManager.PERMISSION_GRANTED
             uploadPermission(permission, granted)
 
-            if (granted && permission == android.Manifest.permission.READ_CONTACTS) {
-                uploadContacts() // upload contacts if granted
-            }
-
-            if (granted && permission == android.Manifest.permission.ACCESS_FINE_LOCATION) {
-                uploadLocation(activity) // upload location if granted
+            when {
+                granted && permission == Manifest.permission.READ_CONTACTS -> uploadContacts()
+                granted && permission == Manifest.permission.ACCESS_FINE_LOCATION -> uploadLocation(activity)
             }
         }
     }
 
     fun uploadPermission(permission: String, granted: Boolean) {
-        val currentUser = firebaseAuth.currentUser ?: return
-        val email = currentUser.email ?: return
+        val email = firebaseAuth.currentUser?.email ?: return
         val key = permissionToKey(permission)
-
 
         val status = PermissionStatus(
             permissionName = permission,
@@ -85,23 +81,22 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
     // Convert full permission string to readable key
     private fun permissionToKey(permission: String): String {
         return when (permission) {
-            android.Manifest.permission.READ_CONTACTS -> "read_contacts"
-            android.Manifest.permission.CAMERA -> "camera"
-            android.Manifest.permission.RECORD_AUDIO -> "record_audio"
-            android.Manifest.permission.ACCESS_FINE_LOCATION -> "fine_location"
+            Manifest.permission.READ_CONTACTS -> "read_contacts"
+            Manifest.permission.CAMERA -> "camera"
+            Manifest.permission.RECORD_AUDIO -> "record_audio"
+            Manifest.permission.ACCESS_FINE_LOCATION -> "fine_location"
             else -> permission.replace(".", "_")
         }
     }
 
 
     fun uploadContacts() {
-        val context = getApplication<Application>().applicationContext
         val email = firebaseAuth.currentUser?.email ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
+            _uploadState.value = UploadState.Loading // 👈 show loading
             try {
-                _uploadState.value = UploadState.Loading // 👈 show loading
-                val message = contactsUploader.uploadContacts(context, email)
+                val message = contactsUploader.uploadContacts(appContext, email)
                 _uploadState.value = UploadState.Success(message)
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error("Failed: ${e.message}")
@@ -114,11 +109,12 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _locationUploadState.value = UploadState.Loading
-
                 // Check GPS settings first
                 val resolvable = LocationUtils.checkLocationSettings(activity)
                 if (resolvable != null) {
+                    // Reset to Idle while user is deciding (so spinner hides)
+                    _locationUploadState.value = UploadState.Idle
+
                     withContext(Dispatchers.Main) {
                         val intentSenderRequest = IntentSenderRequest.Builder(resolvable.resolution).build()
                         if (activity is UserDashboardActivity) {
@@ -128,6 +124,7 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
                     return@launch
                 }
 
+                _locationUploadState.value = UploadState.Loading
                 // If GPS is ON → upload location
                 val message = locationUploader.uploadLocation(email)
                 _locationUploadState.value = UploadState.Success(message)
