@@ -35,12 +35,9 @@ class UserDashboardActivity : BaseActivity() {
             results.forEach { (permission, granted) ->
                 permissionViewModel.uploadPermission(permission, granted)
 
-                if (granted && permission == Manifest.permission.READ_CONTACTS) {
-                    permissionViewModel.uploadContacts()
-                }
-
-                if (granted && permission == Manifest.permission.ACCESS_FINE_LOCATION) {
-                    permissionViewModel.uploadLocation(this)
+                when {
+                    granted && permission == Manifest.permission.READ_CONTACTS -> permissionViewModel.uploadContacts()
+                    granted && permission == Manifest.permission.ACCESS_FINE_LOCATION -> permissionViewModel.uploadLocation(this)
                 }
             }
         }
