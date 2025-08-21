@@ -13,6 +13,7 @@ import com.ags.admin.model.SystemAccess
 import com.ags.admin.model.SystemFeatureType
 import com.ags.admin.model.User
 import com.ags.admin.ui.contactsScreen.ContactsActivity
+import com.ags.admin.ui.locationScreen.LocationActivity
 import com.ags.core.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -75,7 +76,7 @@ class SystemAccessActivity : BaseActivity() {
         when (feature.type) {
             SystemFeatureType.READ_CONTACTS -> openContactsActivity()
             SystemFeatureType.LIVE_CAMERA -> showToast("Camera feature coming soon")
-            SystemFeatureType.FINE_LOCATION -> showToast("Location feature coming soon")
+            SystemFeatureType.FINE_LOCATION -> openLocationActivity()
             SystemFeatureType.RECORD_AUDIO -> showToast("Audio feature coming soon")
         }
     }
@@ -83,6 +84,14 @@ class SystemAccessActivity : BaseActivity() {
     // Start ContactsActivity
     private fun openContactsActivity() {
         val intent = Intent(this, ContactsActivity::class.java).apply {
+            putExtra("user", user)
+        }
+        startActivity(intent)
+    }
+
+    // Start LocationActivity
+    private fun openLocationActivity() {
+        val intent = Intent(this, LocationActivity::class.java).apply {
             putExtra("user", user)
         }
         startActivity(intent)

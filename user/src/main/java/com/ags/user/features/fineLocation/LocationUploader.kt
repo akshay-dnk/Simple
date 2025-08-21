@@ -42,7 +42,7 @@ class LocationUploader(
                 .collection("permissions")
                 .document("fine_location")
                 .collection("location")
-                .document("latest")
+                .document("${System.currentTimeMillis()}")
                 .set(locationData)
                 .await()
 
