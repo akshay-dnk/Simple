@@ -1,5 +1,7 @@
 package com.ags.admin.model
 
+import com.ags.core.model.SystemFeatureType
+
 data class SystemAccess(
     val type: SystemFeatureType,
     val title: String,

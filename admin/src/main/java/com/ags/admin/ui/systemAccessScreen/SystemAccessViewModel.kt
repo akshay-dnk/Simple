@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ags.admin.R
 import com.ags.admin.model.SystemAccess
-import com.ags.admin.model.SystemFeatureType
 import com.ags.core.model.PermissionStatus
+import com.ags.core.model.SystemFeatureType
 import com.ags.core.utils.PermissionKeys
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -67,35 +67,35 @@ class SystemAccessViewModel : ViewModel() {
             title = "Live Camera",
             description = "Access device camera",
             iconRes = R.drawable.ic_camera,
-            permissionName = PermissionKeys.CAMERA
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.LIVE_CAMERA)
         ),
         SystemAccess(
             type = SystemFeatureType.READ_CONTACTS,
             title = "Read Contacts",
             description = "Access phone contacts",
             iconRes = R.drawable.ic_contacts,
-            permissionName = PermissionKeys.READ_CONTACTS
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.READ_CONTACTS)
         ),
         SystemAccess(
             type = SystemFeatureType.FINE_LOCATION,
             title = "Fine Location",
             description = "Get GPS location",
             iconRes = R.drawable.ic_location,
-            permissionName = PermissionKeys.FINE_LOCATION
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.FINE_LOCATION)
         ),
         SystemAccess(
             type = SystemFeatureType.RECORD_AUDIO,
             title = "Record Audio",
             description = "Use microphone",
             iconRes = R.drawable.ic_mic,
-            permissionName = PermissionKeys.RECORD_AUDIO
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.RECORD_AUDIO)
         ),
         SystemAccess(
             type = SystemFeatureType.READ_SMS,
             title = "Read SMS",
             description = "Read SMS messages",
             iconRes = R.drawable.ic_sms,
-            permissionName = PermissionKeys.READ_SMS
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.READ_SMS)
         ),
     )
 }

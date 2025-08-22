@@ -1,4 +1,4 @@
-package com.ags.admin.model
+package com.ags.core.model
 
 enum class SystemFeatureType {
     LIVE_CAMERA,
@@ -6,4 +6,5 @@ enum class SystemFeatureType {
     FINE_LOCATION,
     RECORD_AUDIO,
     READ_SMS,
+
 }

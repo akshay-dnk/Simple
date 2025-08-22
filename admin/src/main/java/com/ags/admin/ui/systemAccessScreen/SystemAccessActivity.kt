@@ -10,12 +10,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ags.admin.databinding.ActivitySystemAccessBinding
 import com.ags.admin.model.SystemAccess
-import com.ags.admin.model.SystemFeatureType
 import com.ags.admin.model.User
 import com.ags.admin.ui.contactsScreen.ContactsActivity
 import com.ags.admin.ui.locationScreen.LocationActivity
 import com.ags.admin.ui.smsScreen.SMSActivity
 import com.ags.core.BaseActivity
+import com.ags.core.model.SystemFeatureType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
