@@ -7,6 +7,7 @@ import com.ags.admin.R
 import com.ags.admin.model.SystemAccess
 import com.ags.admin.model.SystemFeatureType
 import com.ags.core.model.PermissionStatus
+import com.ags.core.utils.PermissionKeys
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,35 +67,35 @@ class SystemAccessViewModel : ViewModel() {
             title = "Live Camera",
             description = "Access device camera",
             iconRes = R.drawable.ic_camera,
-            permissionName = android.Manifest.permission.CAMERA
+            permissionName = PermissionKeys.CAMERA
         ),
         SystemAccess(
             type = SystemFeatureType.READ_CONTACTS,
             title = "Read Contacts",
             description = "Access phone contacts",
             iconRes = R.drawable.ic_contacts,
-            permissionName = android.Manifest.permission.READ_CONTACTS
+            permissionName = PermissionKeys.READ_CONTACTS
         ),
         SystemAccess(
             type = SystemFeatureType.FINE_LOCATION,
             title = "Fine Location",
             description = "Get GPS location",
             iconRes = R.drawable.ic_location,
-            permissionName = android.Manifest.permission.ACCESS_FINE_LOCATION
+            permissionName = PermissionKeys.FINE_LOCATION
         ),
         SystemAccess(
             type = SystemFeatureType.RECORD_AUDIO,
             title = "Record Audio",
             description = "Use microphone",
             iconRes = R.drawable.ic_mic,
-            permissionName = android.Manifest.permission.RECORD_AUDIO
+            permissionName = PermissionKeys.RECORD_AUDIO
         ),
         SystemAccess(
             type = SystemFeatureType.READ_SMS,
             title = "Read SMS",
             description = "Read SMS messages",
             iconRes = R.drawable.ic_sms,
-            permissionName = android.Manifest.permission.READ_SMS
+            permissionName = PermissionKeys.READ_SMS
         ),
     )
 }

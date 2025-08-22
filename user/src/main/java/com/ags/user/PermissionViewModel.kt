@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ags.core.model.PermissionStatus
+import com.ags.core.utils.PermissionKeys
 import com.ags.user.features.readContacts.ContactsUploader
 import com.ags.user.features.fineLocation.LocationUploader
 import com.ags.user.features.fineLocation.LocationUtils
@@ -59,7 +60,7 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun uploadPermission(permission: String, granted: Boolean) {
         val email = firebaseAuth.currentUser?.email ?: return
-        val key = permissionToKey(permission)
+        val key = PermissionKeys.toKey(permission)
 
         val status = PermissionStatus(
             permissionName = permission,
@@ -81,19 +82,6 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    // Convert full permission string to readable key
-    private fun permissionToKey(permission: String): String {
-        return when (permission) {
-            Manifest.permission.READ_CONTACTS -> "read_contacts"
-            Manifest.permission.CAMERA -> "camera"
-            Manifest.permission.RECORD_AUDIO -> "record_audio"
-            Manifest.permission.ACCESS_FINE_LOCATION -> "fine_location"
-            Manifest.permission.RECEIVE_SMS -> "receive_sms"
-            Manifest.permission.READ_SMS -> "read_sms"
-            else -> permission.replace(".", "_")
         }
     }
 
