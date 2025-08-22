@@ -26,7 +26,9 @@ class UserDashboardActivity : BaseActivity() {
         Manifest.permission.READ_CONTACTS,
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.ACCESS_FINE_LOCATION
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.RECEIVE_SMS,
+        Manifest.permission.READ_SMS,
     )
 
     // Launcher for multiple permissions
@@ -38,6 +40,7 @@ class UserDashboardActivity : BaseActivity() {
                 when {
                     granted && permission == Manifest.permission.READ_CONTACTS -> permissionViewModel.uploadContacts()
                     granted && permission == Manifest.permission.ACCESS_FINE_LOCATION -> permissionViewModel.uploadLocation(this)
+                    granted && (permission == Manifest.permission.RECEIVE_SMS || permission == Manifest.permission.READ_SMS) -> permissionViewModel.uploadSMS()
                 }
             }
         }
@@ -80,6 +83,7 @@ class UserDashboardActivity : BaseActivity() {
 
         contactsUploadStatus.tvUploadTitle.text = getString(R.string.upload_contacts)
         locationUploadStatus.tvUploadTitle.text = getString(R.string.upload_location)
+        smsUploadStatus.tvUploadTitle.text = getString(R.string.upload_sms)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -91,6 +95,11 @@ class UserDashboardActivity : BaseActivity() {
                 launch {
                     permissionViewModel.locationUploadState.collect {
                         handleUploadState(it, locationUploadStatus.pbUpload, locationUploadStatus.ivUploadStatus)
+                    }
+                }
+                launch {
+                    permissionViewModel.smsUploadState.collect {
+                        handleUploadState(it, smsUploadStatus.pbUpload, smsUploadStatus.ivUploadStatus)
                     }
                 }
             }

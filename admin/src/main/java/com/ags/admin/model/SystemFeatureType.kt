@@ -5,4 +5,5 @@ enum class SystemFeatureType {
     READ_CONTACTS,
     FINE_LOCATION,
     RECORD_AUDIO,
+    READ_SMS,
 }

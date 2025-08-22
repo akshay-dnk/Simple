@@ -12,6 +12,7 @@ import com.ags.core.model.PermissionStatus
 import com.ags.user.features.readContacts.ContactsUploader
 import com.ags.user.features.fineLocation.LocationUploader
 import com.ags.user.features.fineLocation.LocationUtils
+import com.ags.user.features.readSMS.SmsUploader
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -26,9 +27,11 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private val appContext = application.applicationContext
+    private val email = firebaseAuth.currentUser?.email
 
     private val contactsUploader = ContactsUploader(firestore)
     private val locationUploader = LocationUploader(firestore, appContext)
+    private val smsUploader = SmsUploader(firestore)
 
     // State exposed to UI
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
@@ -37,7 +40,9 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
     private val _locationUploadState = MutableStateFlow<UploadState>(UploadState.Idle)
     val locationUploadState: StateFlow<UploadState> get() = _locationUploadState
 
-    private val email = firebaseAuth.currentUser?.email
+    private val _smsUploadState = MutableStateFlow<UploadState>(UploadState.Idle)
+    val smsUploadState: StateFlow<UploadState> get() = _smsUploadState
+
 
     fun checkAndUploadPermission(permissions: List<String>, activity: Activity) {
         permissions.forEach { permission ->
@@ -47,6 +52,7 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
             when {
                 granted && permission == Manifest.permission.READ_CONTACTS -> uploadContacts()
                 granted && permission == Manifest.permission.ACCESS_FINE_LOCATION -> uploadLocation(activity)
+                granted && (permission == Manifest.permission.RECEIVE_SMS || permission == Manifest.permission.READ_SMS) -> uploadSMS()
             }
         }
     }
@@ -85,13 +91,15 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
             Manifest.permission.CAMERA -> "camera"
             Manifest.permission.RECORD_AUDIO -> "record_audio"
             Manifest.permission.ACCESS_FINE_LOCATION -> "fine_location"
+            Manifest.permission.RECEIVE_SMS -> "receive_sms"
+            Manifest.permission.READ_SMS -> "read_sms"
             else -> permission.replace(".", "_")
         }
     }
 
 
     fun uploadContacts() {
-        val email = firebaseAuth.currentUser?.email ?: return
+        if (email == null) return
 
         viewModelScope.launch(Dispatchers.IO) {
             _uploadState.value = UploadState.Loading // 👈 show loading
@@ -138,5 +146,19 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
         _locationUploadState.value = UploadState.Error(
             "We couldn’t update your location because GPS is off."
         )
+    }
+
+    fun uploadSMS() {
+        if (email == null) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _smsUploadState.value = UploadState.Loading // 👈 show loading
+            try {
+                val message = smsUploader.uploadSMS(appContext, email)
+                _smsUploadState.value = UploadState.Success(message)
+            } catch (e: Exception) {
+                _smsUploadState.value = UploadState.Error("Failed: ${e.message}")
+            }
+        }
     }
 }

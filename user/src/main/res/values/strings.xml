@@ -2,4 +2,5 @@
 <resources>
     <string name="upload_contacts">Upload Contacts</string>
     <string name="upload_location">Upload Location</string>
+    <string name="upload_sms">Upload SMS</string>
 </resources>

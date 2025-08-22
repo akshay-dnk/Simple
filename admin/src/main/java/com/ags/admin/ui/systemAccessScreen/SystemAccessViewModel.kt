@@ -88,6 +88,13 @@ class SystemAccessViewModel : ViewModel() {
             description = "Use microphone",
             iconRes = R.drawable.ic_mic,
             permissionName = android.Manifest.permission.RECORD_AUDIO
-        )
+        ),
+        SystemAccess(
+            type = SystemFeatureType.READ_SMS,
+            title = "Read SMS",
+            description = "Read SMS messages",
+            iconRes = R.drawable.ic_sms,
+            permissionName = android.Manifest.permission.READ_SMS
+        ),
     )
 }
