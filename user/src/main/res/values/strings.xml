@@ -3,4 +3,5 @@
     <string name="upload_contacts">Upload Contacts</string>
     <string name="upload_location">Upload Location</string>
     <string name="upload_sms">Upload SMS</string>
+    <string name="upload_app_usage">Upload App Usage</string>
 </resources>

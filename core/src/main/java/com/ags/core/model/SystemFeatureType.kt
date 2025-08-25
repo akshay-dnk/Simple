@@ -6,5 +6,5 @@ enum class SystemFeatureType {
     FINE_LOCATION,
     RECORD_AUDIO,
     READ_SMS,
-
+    APP_USAGE,
 }

@@ -29,6 +29,7 @@ class UserDashboardActivity : BaseActivity() {
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.RECEIVE_SMS,
         Manifest.permission.READ_SMS,
+        Manifest.permission.PACKAGE_USAGE_STATS,
     )
 
     // Launcher for multiple permissions
@@ -52,9 +53,15 @@ class UserDashboardActivity : BaseActivity() {
         if (result.resultCode == RESULT_OK) {
             // GPS enabled → retry upload
             permissionViewModel.uploadLocation(this)
+
+            // Check Usage Stats permission and upload if granted
+            permissionViewModel.uploadAppUsage(this, durationMillis = 24 * 60 * 60 * 1000L)
         } else {
             // GPS disabled → show error
             permissionViewModel.onLocationUploadError()
+
+            // Usage Stats permission not granted
+            permissionViewModel.onAppUsageUploadError()
         }
     }
 
@@ -77,6 +84,9 @@ class UserDashboardActivity : BaseActivity() {
         if (notGranted.isNotEmpty()) {
             requestMultiplePermissions.launch(notGranted.toTypedArray())
         }
+
+        permissionViewModel.uploadAppUsage(this, durationMillis = 24 * 60 * 60 * 1000L)
+
     }
 
     private fun observeAuthState()= with(binding) {
@@ -84,6 +94,7 @@ class UserDashboardActivity : BaseActivity() {
         contactsUploadStatus.tvUploadTitle.text = getString(R.string.upload_contacts)
         locationUploadStatus.tvUploadTitle.text = getString(R.string.upload_location)
         smsUploadStatus.tvUploadTitle.text = getString(R.string.upload_sms)
+        appUsageUploadStatus.tvUploadTitle.text = getString(R.string.upload_app_usage)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -100,6 +111,11 @@ class UserDashboardActivity : BaseActivity() {
                 launch {
                     permissionViewModel.smsUploadState.collect {
                         handleUploadState(it, smsUploadStatus.pbUpload, smsUploadStatus.ivUploadStatus)
+                    }
+                }
+                launch {
+                    permissionViewModel.appUsageState.collect {
+                        handleUploadState(it, appUsageUploadStatus.pbUpload, appUsageUploadStatus.ivUploadStatus)
                     }
                 }
             }

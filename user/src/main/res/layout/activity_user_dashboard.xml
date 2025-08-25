@@ -29,6 +29,10 @@
                 android:id="@+id/smsUploadStatus"
                 layout="@layout/item_upload_status" />
 
+            <include
+                android:id="@+id/appUsageUploadStatus"
+                layout="@layout/item_upload_status" />
+
         </LinearLayout>
 
     </ScrollView>

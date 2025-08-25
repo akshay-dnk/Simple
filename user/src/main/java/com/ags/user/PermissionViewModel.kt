@@ -2,18 +2,24 @@ package com.ags.user
 
 import android.Manifest
 import android.app.Activity
+import android.app.AppOpsManager
 import android.app.Application
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Process
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ags.core.model.PermissionStatus
 import com.ags.core.utils.PermissionKeys
-import com.ags.user.features.readContacts.ContactsUploader
 import com.ags.user.features.fineLocation.LocationUploader
 import com.ags.user.features.fineLocation.LocationUtils
+import com.ags.user.features.readContacts.ContactsUploader
 import com.ags.user.features.readSMS.SmsUploader
+import com.ags.user.features.usageStatsScreen.UsageStatsUploader
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +39,7 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
     private val contactsUploader = ContactsUploader(firestore)
     private val locationUploader = LocationUploader(firestore, appContext)
     private val smsUploader = SmsUploader(firestore)
+    private val usageStatsUploader = UsageStatsUploader(firestore)
 
     // State exposed to UI
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
@@ -43,6 +50,9 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _smsUploadState = MutableStateFlow<UploadState>(UploadState.Idle)
     val smsUploadState: StateFlow<UploadState> get() = _smsUploadState
+
+    private val _appUsageState = MutableStateFlow<UploadState>(UploadState.Idle)
+    val appUsageState: StateFlow<UploadState> get() = _appUsageState
 
 
     fun checkAndUploadPermission(permissions: List<String>, activity: Activity) {
@@ -148,5 +158,38 @@ class PermissionViewModel(application: Application) : AndroidViewModel(applicati
                 _smsUploadState.value = UploadState.Error("Failed: ${e.message}")
             }
         }
+    }
+
+    fun uploadAppUsage(activity: Activity, durationMillis: Long) {
+        if (email == null) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Check Usage Stats permission first
+                val appOps = activity.getSystemService(Application.APP_OPS_SERVICE) as AppOpsManager
+                val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), activity.packageName)
+                if (mode != AppOpsManager.MODE_ALLOWED) {
+                    // Ask user to enable Usage Access in settings
+                    activity.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(activity, "Please grant Usage Access permission", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
+                } else {
+                    // Already granted → upload
+                    _appUsageState.value = UploadState.Loading
+                    val result = usageStatsUploader.uploadUsageStats(appContext, email, durationMillis)
+                    _appUsageState.value = UploadState.Success(result)
+                }
+            } catch (e: Exception) {
+                _appUsageState.value = UploadState.Error(e.message ?: "Failed to upload usage stats")
+            }
+        }
+    }
+
+    fun onAppUsageUploadError() {
+        _appUsageState.value = UploadState.Error(
+            "We couldn’t update your app usage because Usage Stats permission is off."
+        )
     }
 }
