@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ags.admin.databinding.ActivitySystemAccessBinding
 import com.ags.admin.model.SystemAccess
 import com.ags.admin.model.User
+import com.ags.admin.ui.appUsageScreen.AppUsageActivity
 import com.ags.admin.ui.contactsScreen.ContactsActivity
 import com.ags.admin.ui.locationScreen.LocationActivity
 import com.ags.admin.ui.smsScreen.SMSActivity
@@ -80,6 +81,7 @@ class SystemAccessActivity : BaseActivity() {
             SystemFeatureType.FINE_LOCATION -> openLocationActivity()
             SystemFeatureType.RECORD_AUDIO -> showToast("Audio feature coming soon")
             SystemFeatureType.READ_SMS -> openSMSActivity()
+            SystemFeatureType.APP_USAGE -> openAppUsageActivity()
         }
     }
 
@@ -102,6 +104,14 @@ class SystemAccessActivity : BaseActivity() {
     // Start SMSActivity
     private fun openSMSActivity() {
         val intent = Intent(this, SMSActivity::class.java).apply {
+            putExtra("user", user)
+        }
+        startActivity(intent)
+    }
+
+    // Start AppUsageActivity
+    private fun openAppUsageActivity() {
+        val intent = Intent(this, AppUsageActivity::class.java).apply {
             putExtra("user", user)
         }
         startActivity(intent)

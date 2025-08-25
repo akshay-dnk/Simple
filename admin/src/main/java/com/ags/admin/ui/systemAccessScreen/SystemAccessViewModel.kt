@@ -97,5 +97,13 @@ class SystemAccessViewModel : ViewModel() {
             iconRes = R.drawable.ic_sms,
             permissionName = PermissionKeys.fromKey(SystemFeatureType.READ_SMS)
         ),
+        SystemAccess(
+            type = SystemFeatureType.APP_USAGE,
+            title = "App Usage",
+            description = "Track app usage",
+            iconRes = R.drawable.ic_app_usage,
+            permissionName = PermissionKeys.fromKey(SystemFeatureType.APP_USAGE)
+        ),
+
     )
 }

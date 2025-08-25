@@ -3,6 +3,9 @@
 
     <application>
         <activity
+            android:name=".ui.appUsageScreen.AppUsageActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.smsScreen.SMSActivity"
             android:exported="false" />
         <activity

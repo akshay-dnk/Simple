@@ -59,4 +59,7 @@ dependencies {
 
     // material design
     implementation("com.google.android.material:material:1.14.0-alpha03")
+
+    // fragment
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
 }
